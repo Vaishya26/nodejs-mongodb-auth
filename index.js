@@ -113,14 +113,15 @@ app.route('/login')
                     }
                     else{
                         isMatch = false;
-                        return res.status(400).json({message: "Incorrect username/password"});
+                        // return res.status(400).json({message: "Incorrect username/password"});
+                        return res.redirect('/login');
                     }
 
             
             if(isMatch === false) 
                 {
                     // return res.status(400).json({message: "Incorrect username/password"});
-                    return res.send("Incorrect username/password");
+                    return res.redirect('/login');
                 }     
             
             req.session.loggedinUser = username_l;
