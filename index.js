@@ -4,7 +4,6 @@ const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
 const bcrypt = require("bcryptjs");
 const session = require('express-session');
-const router = express.Router();
 const MongoClient = require('mongodb').MongoClient;
 const url = "mongodb+srv://ajnabuild:ajnabuildauth@ajnabuild.ypts7.mongodb.net/";
 
@@ -14,6 +13,8 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 var myAwesomeDB;
+
+// db connection
 MongoClient.connect(url, {useUnifiedTopology: true,useNewUrlParser: true},function(err, database) {
     if (err) throw err;
 
@@ -31,13 +32,15 @@ MongoClient.connect(url, {useUnifiedTopology: true,useNewUrlParser: true},functi
 
 // Serve Static Assets
 app.use(express.static('public'));
-app.use(express.static('jsm'));
-app.use(express.static('effects'));
 
 
+// for parsing req from body of html
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// for cookies
 app.use(cookieParser());
 
+// session handling
 app.use(session({
     key: 'user_sid',
     secret: 'somerandonstuffs',
@@ -48,6 +51,8 @@ app.use(session({
     }
 }));
 
+
+// clearing cookie when user was left logged in and dint logged out
 app.use((req, res, next) => {
     if (req.cookies.user_sid && !req.session.loggedinUser) {
         res.clearCookie('user_sid');        
@@ -55,6 +60,7 @@ app.use((req, res, next) => {
     next();
 });
 
+// redirecting to dashboard if already loggedin
 const sessionChecker = (req, res, next) => {
     if (req.session.loggedinUser && req.cookies.user_sid) {
         res.redirect('/dashboard');
@@ -76,19 +82,17 @@ app.route('/signup')
         
 
         const username_s = req.body.username;
-        const salt_s = bcrypt.genSaltSync(10);
+        // encrypting passowrd
+        const salt_s = bcrypt.genSaltSync(10); 
         const password_s = bcrypt.hashSync(req.body.password, salt_s);
         
-        try {
+        try 
+        {
             var myobj = { usernamedb: username_s, passworddb: password_s };
             myAwesomeDB.collection("ajnausers").insertOne(myobj, function(err, res) {
                 if (err) throw err;
-                console.log("1 document inserted");                  
+                console.log("Registered Successfully");                  
             });
-            
-
-            
-
 
         } catch (err) {
             console.log(err.message);
@@ -115,7 +119,7 @@ app.route('/login')
                 if (err) throw err;
                         if(result !== null)
                     {
-                      console.log(result.usernamedb,result.passworddb);
+                    //   decrypting and comparing password
                       isMatch = bcrypt.compareSync(password_l, result.passworddb);                    
                     }
                     else{
@@ -131,14 +135,12 @@ app.route('/login')
                     return res.redirect('/login');
                 }     
             
+            // correct password and storing user in session
             req.session.loggedinUser = username_l;
             res.redirect('/dashboard');
             });
             
-            
-                
-            
-      
+                  
           } catch (e) {
             console.error(e);
             res.status(500).json({
