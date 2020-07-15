@@ -28,6 +28,13 @@ MongoClient.connect(url, {useUnifiedTopology: true,useNewUrlParser: true},functi
 });
 
 
+
+// Serve Static Assets
+app.use(express.static('public'));
+app.use(express.static('jsm'));
+app.use(express.static('effects'));
+
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 

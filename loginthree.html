@@ -60,13 +60,13 @@ body {
                 </div>
                 <div class="row">
                   <div class="input-field col s12">
-                    <input id="email_input" type="text" class="validate" name="username">
-                    <label for="email_input">Username</label>
+                    <input id="email_input" type="email" class="validate">
+                    <label for="email_input">Email</label>
                   </div>
                 </div>
                 <div class="row">
                   <div class="input-field col s12">
-                    <input id="password_input" type="password" class="validate" name="password">
+                    <input id="password_input" type="password" class="validate">
                     <label for="password_input">Password</label>
                     <div><a href="#"><b>Forgot password?</b></a></div>
                   </div>
@@ -82,9 +82,9 @@ body {
 
 		<script type="module">
 
-			import * as THREE from '/build/three.module.js';
+			import * as THREE from './build/three.module.js';
 
-			import { AnaglyphEffect } from '/jsm/effects/AnaglyphEffect.js';
+			import { AnaglyphEffect } from './jsm/effects/AnaglyphEffect.js';
 
 			var container, camera, scene, renderer, effect;
 
