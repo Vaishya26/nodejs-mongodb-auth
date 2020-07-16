@@ -13,9 +13,9 @@ const app = express();
 
 
 //------Initializing Server------------------------    
-server = http.createServer(app);
+var server = http.createServer(app);
 server.listen(process.env.PORT || 8000);
-io = socketIO(server);
+var io = socketIO(server);
 
 var myAwesomeDB;
 
