@@ -1,3 +1,6 @@
+var http = require('http');
+var os = require('os');
+var socketIO = require('socket.io');
 const express = require("express");
 const { check, validationResult} = require("express-validator");
 const bodyParser = require("body-parser");
@@ -6,11 +9,13 @@ const bcrypt = require("bcryptjs");
 const session = require('express-session');
 const MongoClient = require('mongodb').MongoClient;
 const url = "mongodb+srv://ajnabuild:ajnabuildauth@ajnabuild.ypts7.mongodb.net/";
-
 const app = express();
 
-// PORT
-const PORT = process.env.PORT || 4000;
+
+//------Initializing Server------------------------    
+server = http.createServer(app);
+server.listen(process.env.PORT || 8000);
+io = socketIO(server);
 
 var myAwesomeDB;
 
@@ -22,10 +27,6 @@ MongoClient.connect(url, {useUnifiedTopology: true,useNewUrlParser: true},functi
      myAwesomeDB = database.db('ajnadb');
 
 
-    
-    app.listen(PORT, (req, res) => {
-        console.log(`Server Started at PORT ${PORT}`);
-      });
 });
 
 
@@ -160,7 +161,7 @@ app.route('/login')
 app.get('/dashboard', (req, res) => {
     if (req.session.loggedinUser && req.cookies.user_sid) {
         // res.sendFile(__dirname + '/public/dashboard.html');
-        res.render("dashboard.ejs");
+        res.render("webrtc.ejs");
     } else {
         res.redirect('/login');
     }
@@ -180,3 +181,61 @@ app.get('/logout', (req, res) => {
 });
 
 
+
+
+//------Socket.IO connections------------------
+io.sockets.on('connection', function(socket) {
+    // convenience function to log server messages on the client
+    // arguments is an array like object which contains all the arguments of log(). 
+    // to push all the arguments of log() in array, we have to use apply().
+    function log() {
+      var array = ['Message from server:'];
+      array.push.apply(array, arguments);
+      socket.emit('log', array);
+    }
+  
+    socket.on('message', function(message, room) {
+      log('Client said: ', message);
+      // for a real app, would be room-only (not broadcast)
+      socket.in(room).emit('message', message, room);
+    });
+  
+    socket.on('create or join', function(room) {
+      log('Received request to create or join room ' + room);
+  
+      var clientsInRoom = io.sockets.adapter.rooms[room];
+      var numClients = clientsInRoom ? Object.keys(clientsInRoom.sockets).length : 0;
+      log('Room ' + room + ' now has ' + numClients + ' client(s)');
+  
+      if (numClients === 0) {
+        socket.join(room);
+        log('Client ID ' + socket.id + ' created room ' + room);
+        socket.emit('created', room, socket.id);
+  
+      } else if (numClients === 1) {
+        log('Client ID ' + socket.id + ' joined room ' + room);
+        io.sockets.in(room).emit('join', room);
+        socket.join(room);
+        socket.emit('joined', room, socket.id);
+        io.sockets.in(room).emit('ready');
+      } else { // max two clients
+        socket.emit('full', room);
+      }
+    });
+  
+    socket.on('ipaddr', function() {
+      var ifaces = os.networkInterfaces();
+      for (var dev in ifaces) {
+        ifaces[dev].forEach(function(details) {
+          if (details.family === 'IPv4' && details.address !== '127.0.0.1') {
+            socket.emit('ipaddr', details.address);
+          }
+        });
+      }
+    });
+  
+    socket.on('bye', function(){
+      console.log('received bye');
+    });
+  
+  });
