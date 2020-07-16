@@ -77,7 +77,8 @@ app.get('/', sessionChecker, (req, res) => {
 // route for user signup
 app.route('/signup')
     .get(sessionChecker, (req, res) => {
-        res.sendFile(__dirname + '/public/signup.html');
+        // res.sendFile(__dirname + '/public/signup.html');
+        res.render("signup.ejs");
     }).post( (req, res) => {
         
 
@@ -107,7 +108,9 @@ app.route('/signup')
 // route for user Login
 app.route('/login')
     .get(sessionChecker, (req, res) => {
-        res.sendFile(__dirname + '/public/login.html');
+        var error_msg = "";
+        // res.sendFile(__dirname + '/login.html');
+        res.render('login.ejs',{error:error_msg});
     }).post((req, res) => {
           
         const username_l = req.body.username;
@@ -124,15 +127,18 @@ app.route('/login')
                     }
                     else{
                         isMatch = false;
+                        var error_msg = "Incorrect username/password";
                         // return res.status(400).json({message: "Incorrect username/password"});
-                        return res.redirect('/login');
+                        return res.render('login.ejs',{error:error_msg});
                     }
 
             
             if(isMatch === false) 
                 {
-                    // return res.status(400).json({message: "Incorrect username/password"});
-                    return res.redirect('/login');
+                        isMatch = false;
+                        var error_msg = "Incorrect username/password";
+                        // return res.status(400).json({message: "Incorrect username/password"});
+                        return res.render('login.ejs',{error:error_msg});
                 }     
             
             // correct password and storing user in session
@@ -153,7 +159,8 @@ app.route('/login')
 // route for user's dashboard
 app.get('/dashboard', (req, res) => {
     if (req.session.loggedinUser && req.cookies.user_sid) {
-        res.sendFile(__dirname + '/public/dashboard.html');
+        // res.sendFile(__dirname + '/public/dashboard.html');
+        res.render("dashboard.ejs");
     } else {
         res.redirect('/login');
     }
